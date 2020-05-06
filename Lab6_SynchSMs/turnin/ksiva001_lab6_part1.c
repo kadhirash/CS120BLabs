@@ -1,9 +1,9 @@
 /*	Author: lab
  *  Partner(s) Name: Kadhirash Sivakumar
  *	Lab Section: 021
- *	Assignment: Lab # 6  Exercise # 2
+ *	Assignment: Lab # 6  Exercise # 1
  *	Exercise Description: 
- *		syncSM to blink 3 LEDs with button press
+ *		syncSM to blink 3 LEDs 
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
  */
