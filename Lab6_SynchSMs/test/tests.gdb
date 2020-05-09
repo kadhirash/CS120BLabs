@@ -40,40 +40,37 @@ echo Running all tests..."\n\n
 
 # Add tests below
 
-test "PINA: 0xFF => PORTB: 0x00, state: Start"
-set state = Start
-setPINA 0xFF
+test "Initializing, PORTB: 0x00, state: Init"
+set state = Init
 expectPORTB 0x00
-expect state Start
+expect state Init
 checkResult
 
 
-test "PINA: 0xFF => PORTB: 0x01, state: LED1"
+test "PINA: 0xFF => PORTB: 0x00, state: Init"
 set state = Start
 setPINA 0xFF
-continue 1
-expectPORTB 0x01
-expect state LED1
+timeContinue 1
+expectPORTB 0x00
+expect state Init
 checkResult
 
 
-test "PINA: 0xFF => PORTB: 0x02, state: LED2"
-set state = Start
+test "PINA: 0xFF => PORTB: 0x02, state: Led_Stop"
+set state = Init
 setPINA 0xFF
-continue 2
+timeContinue 2
 expectPORTB 0x02
-expect state LED2
+expect state Led_Stop
 checkResult
 
-
-test "PINA: 0xFF => PORTB: 0x04, state: LED3"
+test "PINA: 0xFE => PORTB: 0x02, state: Led_Stop"
 set state = Start
-setPINA 0xFF
-continue 3
-expectPORTB 0x04
-expect state LED3
+setPINA 0xFE
+timeContinue 3
+expectPORTB 0x02
+expect state Led_Stop
 checkResult
-
 
 # Report on how many tests passed/tests ran
 set $passed=$tests-$failed

@@ -14,81 +14,79 @@
 
 #include "timer.h"
 
-enum States {Init, Start, LED1, LED2, LED3, Press, Restart} state;
+enum States {Start, Init, Led_Stop, Led_Bounce, Pause, Restart} state;
+
+#define A0 (~PINA & 0x01)
+#define B PORTB
+
+unsigned char press_count; // keep track of presses
+unsigned char led_count; // keep track of led
 
 void Tick(){
 	switch(state){
-		case Init:
-			state = Start; break;
 		case Start:
-			state = LED1; break;
-		case LED1:
-			if(~PINA & 0x01){
-				state = Press;
-			}else{
-				state = LED2;
+			state = Init; break;
+		case Init:
+			led_count = 1; press_count = 0; B = 0x01; state = Led_Stop; break;
+		case Led_Stop:
+			if(!A0){
+				press_count ++; // when not pressing A0, increment presses
 			}
-			break;
-		case LED2:
-			if(~PINA & 0x01){
-				state = Press;
-			}else{
-				state = LED3;
+			if (A0 && press_count >= 1){ // only if press count >= 1, go to Pause
+				state = Pause;
 			}
-			break;
-		case LED3:
-			if(~PINA & 0x01){
-				state = Press;
-			}else{
-				state = LED1;
+			else if (led_count == 0){
+				B = 0x01; state = Led_Stop; 
 			}
+			else if (led_count == 1){
+				B = 0x02; state = Led_Stop;
+			}
+			else if (led_count == 2){
+				B = 0x04; state = Led_Bounce;
+			}
+			led_count++; // increment led
 			break;
-		case Press:
-			if(~PINA & 0x01){
-				state = Press;
-			}else{
+		case Led_Bounce:
+			if(!A0){
+				press_count ++;
+			}
+			if (A0 && press_count >= 1){
+				state = Pause;
+			}
+			else if (led_count == 3){
+				B = 0x02; state = Led_Bounce; 
+			}
+			else if (led_count == 4){
+				led_count = 0; B = 0x01; state = Led_Stop;  // reset led count back to 0
+			} 
+			led_count++;
+			break;
+		case Pause:
+			if(A0){
+				state = Pause;
+			}else {
 				state = Restart;
 			}
 			break;
 		case Restart:
-			if(~PINA & 0x01){ 
-				state = LED1;
-			}else{
-				state = Restart;
+			if(A0){
+				led_count = 1; press_count = 0; B = 0x01; state = Led_Stop;
 			}
+			break;
 		default:
 			state = Start; break;
-	
-	}
-	switch(state){
-		case Init:
-		case Start:
-			break;
-		case LED1:
-			PORTB = 0x01;  break;
-		case LED2:
-			PORTB = 0x02;  break;
-		case LED3:
-			PORTB = 0x04;  break;
-		case Press:
-		case Restart:
-			 break;
-		default:
-			break;
 	}
 }
+
 int main(void) {
     /* Insert DDR and PORT initializations */
 	DDRA = 0x00; PORTA = 0xFF;
 	DDRB = 0xFF; PORTB = 0x00;
-	TimerSet(1000);
+	TimerSet(300);
 	TimerOn();
-//	unsigned char tmpB = 0x00;
-	state = Start;
+	state = Init;
     /* Insert your solution below */
     while (1) {
-//	tmpB = ~tmpB;
-//	PORTB = tmpB;
 	Tick();
 	while(!TimerFlag);
 	TimerFlag = 0;
