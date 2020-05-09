@@ -14,169 +14,67 @@
 
 #include "timer.h"
 
-enum States {Init, LED1, LED2, LED3} state;
+enum States {Start, Init, Led_Stop, Led_Bounce, Pause, Restart} state;
 
 #define A0 (~PINA & 0x01)
 #define B PORTB
-unsigned char i = 0; // counter variable between LED lights
-unsigned char reset = 0; // reset variable 
+
+unsigned char press_count; // keep track of presses
+unsigned char led_count; // keep track of led
 
 void Tick(){
 	switch(state){
-		case Init:
-				i = 1;
-				B = 0x01; 
-				state = LED1; 
-			break;
-
-		case LED1:
-				if(!A0 && i == 1){ // not pressed (game start)
-					i = 2;
-					B = 0x02;
-					state = LED2;
-				}
-				else if(A0 && i == 1){ // button pressed (led stops)
-					i++;	// increment i counter 
-					B = 0x01;	// maintain position
-					state = LED1;
-				}
-				else if(A0 && i > 1){	// button hold (led still stopped)
-					i++;
-					B = 0x01;
-					state = LED1;
-				}
-				else if(!A0 && i > 1 && reset == 0){ // release after held/reset (led still stopped, but i = 2)
-					i = 2;
-					B = 0x01;
-					state = LED1;
-				}
-				else if(A0 && i == 2){ // pressed again to reset (Bouncing starts)
-					i = 1;
-					reset = 1; // set reset
-					B = 0x01;
-					state = LED1;
-				}
-				else if(A0 && i >= 2 && reset == 1){ // pressed and held after reset
-						i = 12;
-						B = 0x01;
-						state = LED1;
-				}
-				else if(A0 && i == 11){
-					i == 12;
-					reset = 0;
-					B = 0x01;
-					state = LED2;
-				}
-				else{
-					i = 1;
-					B = 0x01;
-					state = LED1;
-				}
-			break;
-
-		case LED2:
-				if(!A0 && i == 2){ // not pressed (game start) from LED 1 --> LED 2
-					i = 3;
-					B = 0x04;
-					state = LED3;
-				}
-				else if(A0 && i == 2){ // button pressed (led stops)
-					i++;	// increment i counter
-					B = 0x02;	// maintain position
-					state = LED2;
-				}
-
-				else if(!A0 && i == 22){ // from LED 3 --> LED 2
-					i = 1;
-					B = 0x01;
-					state = LED1;
-				}
-
-				else if(A0 && i > 2){ // button hold (led still stopped)
-					i++;	// increment i counter
-					B = 0x02;	// maintain position
-					state = LED2;
-				}
-				else if(!A0 && i > 1 &&  reset == 0){ // release after held/reset (led still stopped, but i = 3)
-					i = 3;
-					B = 0x02;
-					state = LED2;
-				}
-				else if(A0 && i == 3){ // pressed again to reset (Bouncing starts)
-					i = 1;
-					reset = 1;
-					B = 0x01;
-					state = LED1;
-				}
-				else if(A0 && i == 12){ // pressed and held after reset
-						i = 13;
-						B = 0x04;
-						state = LED3;
-				}
-				else if(A0 && i == 22){
-					i == 11;
-					B = 0x01;
-					state = LED1;
-
-				}
-				else{
-					i = 2;
-					B = 0x04;
-					state = LED2;
-				}
-			break;
-
-		case LED3:
-			if(!A0 && i == 3){ // not pressed (game start) from LED 2 --> LED 3
-				i = 22; // go back to LED 2
-				B = 0x02;
-				state = LED2;
-			}
-			else if(A0 && i == 3){ // button pressed (led stops)
-				i++;	// increment i counter
-				B = 0x04;	// maintain position
-				state = LED3;
-			}
-			else if(A0 && i > 3){  // button hold (led still stopped)
-					i ++;
-					B = 0x04;
-					state = LED3;
-			}
-			else if(!A0 && i > 1 && reset == 0){  // release after held (led still stopped, but i = 3)
-				i = 22;
-				B = 0x04;
-				state = LED3;
-			}
-			else if(A0 &&  i == 4){ // pressed again to reset (Bouncing starts)
-				i = 1;
-				reset = 1;
-				B = 0x01;
-				state = LED1;
-			}
-			else if(A0 && i == 13){
-				i = 22;
-				B = 0x02;
-				state = LED2;
-				break;
-			}
-			else{
-				i = 3;
-				B = 0x04;
-				state = LED3;
-			}
-			break;
-		default:
+		case Start:
 			state = Init; break;
-	}
-	switch(state){
 		case Init:
-			B = 0x00; break;
-		case LED1:
-		case LED2:
-		case LED3:
-			 break;
+			led_count = 1; press_count = 0; B = 0x01; state = Led_Stop; break;
+		case Led_Stop:
+			if(!A0){
+				press_count ++; // when not pressing A0, increment presses
+			}
+			if (A0 && press_count >= 1){ // only if press count >= 1, go to Pause
+				state = Pause;
+			}
+			else if (led_count == 0){
+				B = 0x01; state = Led_Stop; 
+			}
+			else if (led_count == 1){
+				B = 0x02; state = Led_Stop;
+			}
+			else if (led_count == 2){
+				B = 0x04; state = Led_Bounce;
+			}
+			led_count++; // increment led
+			break;
+		case Led_Bounce:
+			if(!A0){
+				press_count ++;
+			}
+			if (A0 && press_count >= 1){
+				state = Pause;
+			}
+			else if (led_count == 3){
+				B = 0x02; state = Led_Bounce; 
+			}
+			else if (led_count == 4){
+				led_count = 0; B = 0x01; state = Led_Stop;  // reset led count back to 0
+			} 
+			led_count++;
+			break;
+		case Pause:
+			if(A0){
+				state = Pause;
+			}else {
+				state = Restart;
+			}
+			break;
+		case Restart:
+			if(A0){
+				led_count = 1; press_count = 0; B = 0x01; state = Led_Stop;
+			}
+			break;
 		default:
-			state = Init;	break;
+			state = Start; break;
 	}
 }
 
@@ -186,12 +84,9 @@ int main(void) {
 	DDRB = 0xFF; PORTB = 0x00;
 	TimerSet(300);
 	TimerOn();
-	//unsigned char tmpB = 0x00;
 	state = Init;
     /* Insert your solution below */
     while (1) {
-	//tmpB = ~tmpB;
-	//PORTB = tmpB;
 	Tick();
 	while(!TimerFlag);
 	TimerFlag = 0;
