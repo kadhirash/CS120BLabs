@@ -13,70 +13,77 @@
 #endif
 
 #include "timer.h"
-enum States {Init, Start, LED1, Inc , Dec, Wait, Restart} state;
+enum States {Start, Init, Inc, Dec, Work} state;
 
 
-unsigned char A = 0x00;
+#define A1 (~PINA & 0x01)
+#define A2 (~PINA & 0x02)
+#define A3 (~PINA & 0x03)
+#define B PORTB
+unsigned char timer = 0;
 
+// Inc/Dec as you're holding the state 
 void Tick() {
-    A = ~PINA & 0x03;
     switch(state) { 
-        case Init:
-            state = Start; break;
         case Start:
-            state = LED1; break;
-        case LED1:
-            if (A  == 0x01)
-                state = Inc;
-            else if (A == 0x02)
-                state = Dec;
-            else if (A  == 0x03)
-                state = Restart;
-            else
-                state = LED1;
-            break;
+            state = Init; break;
+        case Init:
+            B = 0x07; state = Work; break;
+        case Work:
+        	if(A1 == 0x01){ // inc
+        		if(B < 0x09){
+        			B ++;
+        			timer = 0;
+        			state = Inc;
+        		}
+        	}else if (A2 == 0x02){ //dec
+        		if(B > 0x00){
+        			B --;
+        			timer = 0;
+        			state = Dec;
+        		}
+        	}else if (A3 == 0x03){
+        		B = 0x00; //reset
+        	}
+        	else{
+        		state = Work;
+        	}
+        	break;
         case Inc:
+        	if(A1 == 0x01){
+        		timer ++;
+        		if(B < 0x09 && ( (timer % 10) == 0)){
+        			B ++;
+        			timer = 0;
+        		}
+        	}
+        	else {
+        		state = Work;
+        	}
+           	break;
         case Dec:
-            state = Wait;
-            break;
-        case Wait:
-            if(A == 0x01)
-                state = Inc;
-            else if (A == 0x02)
-                state = Dec;
-            else if (A == 0x03)
-                state = Restart;
-            else if (A  == 0x00)
-                state = LED1;
-            else
-                state = Wait;
-            break;
-        case Restart:
-            if(A == 0x00){
-                state = LED1;
-            }
-            else {
-                state = Restart;
-            }
-        default: break;
+        	if(A2 == 0x02){
+        		timer ++;
+        		if(B > 0x00 && ( (timer % 10) == 0)){
+        			B --;
+        			timer = 0;
+        		}
+        	}
+        	else {
+        		state = Work;
+        	}
+           	break;
+        default: 
+            state = Init; break;
     }
     switch(state) { 
-        case Init:
-        PORTB = 0x07; break;
         case Start:
-        case LED1:
-        case Wait:
-            break;
+        case Init:
         case Inc:
-                if (PORTB < 9) PORTB++;
-                break;
         case Dec:
-                if (PORTB > 0) PORTB--;
-                break;
-        case Restart:
-                PORTB = 0x00;
+        	break;
+        default: 
             break;
-        default: break;
     }
 }
 
@@ -85,11 +92,9 @@ int main(void) {
     DDRA = 0x00; PORTA = 0xFF;
     DDRB = 0xFF; PORTB = 0x00; 
 
-
     TimerSet(100);
     TimerOn();
-    state = Start;
-    PORTB = 0x07;
+    state = Init;
     /* Insert your solution below */
     while (1) {
     Tick();
