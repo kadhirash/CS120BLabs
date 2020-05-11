@@ -43,11 +43,26 @@ void Tick(){
 				press_count ++; // when not pressing A0, increment presses
 			}
 			if (A0 && press_count >= 1){ // only if press count >= 1, go to Pause
+				if(B == 0x01 || B == 0x04){
+					-- counter ;
+					LCD_Cursor(1);
+					LCD_WriteData(counter + '0');
+				}
+				if(B == 0x02){
+					++ counter;
+					if(counter >= 9){
+						LCD_Cursor(1);
+						LCD_ClearScreen();
+						LCD_DisplayString(1, messg);
+					}else{
+						LCD_Cursor(1);
+						LCD_WriteData(counter + '0');
+					}
+				}
 				state = Pause;
 			}
 			else if (led_count == 0){
-				B = 0x01;
-			//        counter --;	
+				B = 0x00;	
 				state = Led_Stop; 
 				LCD_Cursor(1);
 				LCD_WriteData(counter + '0');
@@ -55,20 +70,17 @@ void Tick(){
 			else if (led_count == 1){
 				B = 0x02; 
 				state = Led_Stop;
+				if(counter >= 9){
+					LCD_Cursor(1);
+					LCD_ClearScreen();
+					LCD_DisplayString(1, messg);	
+				}
 				LCD_Cursor(1);
 				LCD_WriteData(counter + '0');
 			}
 			else if (led_count == 2){
-				//counter ++;
-			//	counter --;
-			//	if(counter >= 0x09){
-			//		LCD_DisplayString(1, messg);
-					//break;
-			//	}
-			//	else{
-					LCD_Cursor(1);
-					LCD_WriteData(counter + '0');
-			//	}
+				LCD_Cursor(1);
+				LCD_WriteData(counter + '0');
 				B = 0x04; 
 				state = Led_Bounce;
 
@@ -80,11 +92,35 @@ void Tick(){
 				press_count ++;
 			}
 			if (A0 && press_count >= 1){
+				if(B == 0x01 || B == 0x04){
+					-- counter;
+					LCD_Cursor(1);
+					LCD_WriteData(counter + '0');
+				}
+				if(B == 0x02){
+					++ counter;
+					if(counter >= 9){
+						LCD_Cursor(1);
+						LCD_ClearScreen();
+						LCD_DisplayString(1, messg);
+						break;
+					}else{
+						LCD_Cursor(1);
+						LCD_WriteData(counter + '0');
+					}
+					
+				}
 				state = Pause;
+
 			}
 			else if (led_count == 3){
 				B = 0x02; 
 				state = Led_Bounce; 
+				 if(counter >= 9){
+                                        LCD_Cursor(1);
+                                        LCD_ClearScreen();
+                                        LCD_DisplayString(1, messg);
+                                }
 			}
 			else if (led_count == 4){
 				led_count = 0; 
@@ -94,51 +130,32 @@ void Tick(){
 			led_count++;
 			break;
 		case Pause:
-			if(A0 && (led_count == 1 || led_count == 3)){
-				counter ++;
-				if(counter >= 9){
-					LCD_Cursor(1);
-					LCD_DisplayString(1, messg);
-					break;
-				}
-				else {
-					//counter ++;
-					LCD_Cursor(1);
-					LCD_WriteData(counter + '0');
-					state = Pause;
-				}
-				
-			}
-			else if(A0 && (led_count != 1 || led_count != 3)){
-				counter --;
-				LCD_Cursor(1);
-				LCD_WriteData(counter + '0');
+			if(A0){
 				state = Pause;
-			}else {
+			}
+			else {
 				state = Restart;
 			}
 			break;
 		case Restart:
 			if(A0){
-				if (counter != 9){
+				if (counter >= 9){
 					led_count = 1; 
 					press_count = 0; 
 					B = 0x01; 
-					//counter = 5;
-					//LCD_ClearScreen();
-					LCD_Cursor(1);
-					LCD_WriteData(counter + '0');
-					state = Led_Stop;
-				}
-				
-				if(counter >= 9){
-					led_count = 1;
-					press_count = 0;
-					B = 0x01;
 					counter = 5;
 					LCD_ClearScreen();
 					LCD_Cursor(1);
 					LCD_WriteData('5');
+					state = Led_Stop;
+				}
+				
+				if(counter != 9){
+					led_count = 1;
+					press_count = 0;
+					B = 0x01;
+					LCD_Cursor(1);
+					LCD_WriteData(counter + '0');
 					state = Led_Stop;
 				}
 			}
