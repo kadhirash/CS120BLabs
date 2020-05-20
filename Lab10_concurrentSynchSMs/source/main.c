@@ -3,7 +3,7 @@
  *	Lab Section: 021
  *	Assignment: Lab # 10  Exercise # 3
  *	Exercise Description: [optional - include for your own benefit]
- *	Blinking and 3 LED's, but periods are different now and speaker
+ *	Blinking and 3 LED's, but periods are different now and speaker.
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
  */
@@ -12,6 +12,7 @@
 #include "simAVRHeader.h"
 #endif
 #include "timer.h"
+
 
 enum ThreeLEDsSM{ThreeLEDsStart, ThreeLEDsInit} ThreeLEDsState;
 unsigned char threeLEDs = 0x00; // shared variable
@@ -67,7 +68,6 @@ void BlinkingLEDSM_Tick(){
 }
 
 enum SpeakerSM{SpeakerStart, SpeakerInit, SpeakerOn, SpeakerOff} SpeakerState;
-
 unsigned char speaker = 0x00;
 #define A2 (~PINA & 0x04)
 
@@ -91,8 +91,8 @@ void SpeakerSM_Tick(){
 			break;
 	}
 	switch(SpeakerState){
-		case SpeakerInit:
 		case SpeakerStart:
+		case SpeakerInit:
 		case SpeakerOff:
 			speaker = 0x00; break;
 		case SpeakerOn:
@@ -101,6 +101,9 @@ void SpeakerSM_Tick(){
 			break;
 	}
 }
+
+
+
 enum CombineLEDsSM{CombineLEDStart} CombineLEDState;
 
 void CombineLEDsSM_Tick(){
@@ -131,6 +134,7 @@ int main(void) {
 	ThreeLEDsState = ThreeLEDsStart;
 	BlinkingLEDState = BlinkingLEDStart;
 	CombineLEDState = CombineLEDStart;
+	
 
 	TimerSet(2);
 	TimerOn();
@@ -151,7 +155,7 @@ int main(void) {
 
 
 	CombineLEDsSM_Tick();
-	
+		
 	while(!TimerFlag);
 	TimerFlag = 0;
 	ThreeLEDs_Time += period;
