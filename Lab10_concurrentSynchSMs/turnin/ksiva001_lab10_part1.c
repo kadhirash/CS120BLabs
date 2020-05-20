@@ -45,7 +45,7 @@ void ThreeLEDsSM_Tick(){
 }
 
 enum BlinkingLEDSM{BlinkingLEDStart, BlinkingLEDInit} BlinkingLEDState;
-unsigned char blinkingLED = 0x00;
+unsigned char blinkingLED = 0x01;
 
 void BlinkingLEDSM_Tick(){
 	switch(BlinkingLEDState){
