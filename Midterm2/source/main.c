@@ -12,15 +12,16 @@
 #include "timer.h"
 
 /* SM state declarations --- fill in as needed */
-typedef enum ping_states { PInit,                                           } ping_states;
-typedef enum detect_eq_states { DEQInit,                                    } detect_eq_states;
+typedef enum ping_states { PInit,H, L                                           } ping_states;
+typedef enum detect_eq_states { DEQInit,    no_eq, yes_eq                                } detect_eq_states;
 typedef enum detect_max_amp_states { DMAInit,                               } detect_max_amp_states;
 typedef enum detect_zc_states { DZCInit,                                    } detect_zc_states;
-typedef enum transmit_states {TInit,                                        } transmit_states;
+typedef enum transmit_states {TInit, transmit_ouput                                       } transmit_states;
 
 /* shared variables --- fill in as needed */
 
-
+unsigned char ping_output;
+unsigned char detect_eq;
 
 
 

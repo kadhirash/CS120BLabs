@@ -10,7 +10,12 @@ void Transmit()
     switch(transmit_state)
     {
         case TInit:
+		//transmit_state = transmit_output;
             break;
+	/*case transmit_output:
+	    	PORTB = ping_output; // ping detection 
+		//transmit_state = transmit_output;
+		break;*/
         default:
             transmit_state = TInit;
             break;
